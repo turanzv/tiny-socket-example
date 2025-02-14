@@ -31,17 +31,34 @@ int main() {
     std::cout << "connected to server!" << std::endl;
     char buffer[1024] = {0};
 
+    fd_set read_fs;
+
     while (true) {
-        std::string message;
-        std::cout << "[Client] Enter message: ";
-        std::getline(std::cin, message);
+        FD_ZERO(&read_fs);
+        FD_SET(sock, &read_fs); // Monitor the socket for incoming data
+        FD_SET(STDIN_FILENO, &read_fs); // Monitor stdin for user input
 
-        send(sock, message.c_str(), message.size(), 0);
+        int max_fd = sock > STDIN_FILENO ? sock : STDIN_FILENO;
+        int activity = select(max_fd + 1, &read_fs, nullptr, nullptr, nullptr);
 
-        ssize_t bytes = read(sock, buffer, sizeof(buffer));
-        if (bytes <= 0) break;
+        if (activity < 0) {
+            std::cerr << "[Client] Error in select()" << std::endl;
+            break;
+        }
 
-        std::cout << "[Client] Server said: " << buffer << std::endl;
+        if (FD_ISSET(sock, &read_fs)) {
+            ssize_t bytes = read(sock, buffer, sizeof(buffer));
+            if (bytes <= 0) break;
+
+            std::cout << "[Client] Server said: " << buffer << std::endl;
+        }
+
+        if (FD_ISSET(STDIN_FILENO, &read_fs)) {
+            std::string message;
+            std::getline(std::cin, message);
+
+            send(sock, message.c_str(), message.size(), 0);
+        }
     }
 
     close(sock);
