@@ -12,7 +12,7 @@ std::vector<int> client_fds;
 
 void cleanup_connections() {
     for (int client_fd : client_fds) {
-        std::cout << "Closing client connection: " << client_fd << std::endl;
+        std::cout << "[Server] Closing client connection: " << client_fd << std::endl;
         send(client_fd, "", 0, 0);
         shutdown(client_fd, SHUT_RDWR);
         close(client_fd);
@@ -33,7 +33,7 @@ void handle_client(int client_fd) {
             send(client_fd, reply.c_str(), reply.size(), 0);
 
         } else if (bytes == 0) {
-            std::cout << "Client disconnected" << std::endl;
+            std::cout << "[Server] Client disconnected" << std::endl;
             break;
 
         } else if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -49,10 +49,10 @@ void handle_client(int client_fd) {
 }
 
 void signal_handler(int signal) {
-    std::cout << "Caught signal " << signal << std::endl;
-    std::cout << "Closing client connections" << std::endl;
+    std::cout << "[Server] Caught signal " << signal << std::endl;
+    std::cout << "[Server] Closing client connections" << std::endl;
     cleanup_connections();
-    std::cout << "Shutting down server..." << std::endl;
+    std::cout << "[Server] Shutting down server..." << std::endl;
     running = false;
 }
 
@@ -85,13 +85,13 @@ int main() {
     signal(SIGINT, signal_handler);
 
     std::vector<std::thread> threads;
-    std::cout << "Server listening on port " << PORT << std::endl;
+    std::cout << "[Server] Listening on port " << PORT << std::endl;
 
 
     while (running) {
         int client_fd = accept(server_fd, nullptr, nullptr);
         if (client_fd >= 0) {
-            std::cout << "Client connected" << std::endl;
+            std::cout << "[Server] Client connected" << std::endl;
             client_fds.push_back(client_fd);
             threads.emplace_back(handle_client, client_fd);
 
@@ -101,7 +101,7 @@ int main() {
             continue;
 
         } else {
-            std::cerr << "Accept error: " << strerror(errno) << std::endl;
+            std::cerr << "[Server] Accept error: " << strerror(errno) << std::endl;
             break; // Other errors
         }
     }
