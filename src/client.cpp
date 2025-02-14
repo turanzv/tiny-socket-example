@@ -28,7 +28,7 @@ int main() {
         return 1;
     }
 
-    std::cout << "connected ot server!" << std::endl;
+    std::cout << "connected to server!" << std::endl;
     char buffer[1024] = {0};
 
     while (true) {
