@@ -13,7 +13,6 @@ std::vector<int> client_fds;
 void cleanup_connections() {
     for (int client_fd : client_fds) {
         std::cout << "[Server] Closing client connection: " << client_fd << std::endl;
-        send(client_fd, "", 0, 0);
         shutdown(client_fd, SHUT_RDWR);
         close(client_fd);
     }
@@ -34,6 +33,8 @@ void handle_client(int client_fd) {
 
         } else if (bytes == 0) {
             std::cout << "[Server] Client disconnected" << std::endl;
+            std::cout << "[Server] Closing client connection" << std::endl; 
+            shutdown(client_fd, SHUT_RDWR);
             break;
 
         } else if (errno == EAGAIN || errno == EWOULDBLOCK) {

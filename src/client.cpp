@@ -48,7 +48,13 @@ int main() {
 
         if (FD_ISSET(sock, &read_fs)) {
             ssize_t bytes = read(sock, buffer, sizeof(buffer));
-            if (bytes <= 0) break;
+            if (bytes == 0) {
+                std::cout << "[Client] Server has shut down the communication." << std::endl;
+                break;
+            } else if (bytes < 0) {
+                std::cerr << "[Client] Error receiving message" << std::endl;
+                break;
+            }
 
             std::cout << "[Client] Server said: " << buffer << std::endl;
         }
@@ -56,6 +62,12 @@ int main() {
         if (FD_ISSET(STDIN_FILENO, &read_fs)) {
             std::string message;
             std::getline(std::cin, message);
+
+            if (message == "exit") {
+                std::cout << "[Client] Exiting..." << std::endl;
+                shutdown(sock, SHUT_WR);
+                continue;
+            }
 
             send(sock, message.c_str(), message.size(), 0);
         }
